@@ -13,7 +13,9 @@ import { FormBodyBuilder, RequireAtLeastOne } from "./types";
 import { TextFormField } from "./Field";
 import { createCredential, linkCredential } from "@/lib/credential";
 import { useSWRConfig } from "swr";
-import { Button } from "@tremor/react";
+import { Button, Divider } from "@tremor/react";
+import { HidableSection } from "@/app/admin/assistants/HidableSection";
+import { useConnectorAdvancedSettings } from "./hooks";
 
 const BASE_CONNECTOR_URL = "/api/manage/admin/connector";
 
@@ -96,28 +98,46 @@ export function ConnectorForm<T extends Yup.AnyObject>({
 }: ConnectorFormProps<T>): JSX.Element {
   const { mutate } = useSWRConfig();
   const { popup, setPopup } = usePopup();
+  const displayAdvancedSettings = useConnectorAdvancedSettings();
 
   const shouldHaveNameInput = credentialId !== undefined && !ccPairNameBuilder;
+
+  const commonFields = {
+    embedding_size: "",
+    chunk_overlap: ""
+  };
+
+  const formInitialValues = {
+    ...initialValues,
+    ...commonFields,
+    ...(shouldHaveNameInput ? { cc_pair_name: "" } : {})
+  };
+
+  // Define common schema
+  const commonSchema = {
+    embedding_size: Yup.string(),
+    chunk_overlap: Yup.string()
+  };
+
+  // Create validationSchema
+  const formValidationSchema = validationSchema
+    .shape(commonSchema)
+    .concat(shouldHaveNameInput ? CCPairNameHaver : Yup.object());
+
 
   return (
     <>
       {popup}
       <Formik
-        initialValues={
-          shouldHaveNameInput
-            ? { cc_pair_name: "", ...initialValues }
-            : initialValues
-        }
-        validationSchema={
-          shouldHaveNameInput
-            ? validationSchema.concat(CCPairNameHaver)
-            : validationSchema
-        }
+        initialValues={formInitialValues}
+        validationSchema={formValidationSchema}
         onSubmit={async (values, formikHelpers) => {
           formikHelpers.setSubmitting(true);
           const connectorName = nameBuilder(values);
           const connectorConfig = Object.fromEntries(
-            Object.keys(initialValues).map((key) => [key, values[key]])
+            Object.keys(initialValues)
+              .filter((key) => key !== "embedding_size" && key !== "chunk_overlap")
+              .map((key) => [key, values[key]])
           ) as T;
 
           // best effort check to see if existing connector exists
@@ -145,6 +165,8 @@ export function ConnectorForm<T extends Yup.AnyObject>({
             connector_specific_config: connectorConfig,
             refresh_freq: refreshFreq || 0,
             disabled: false,
+            embedding_size: values.embedding_size ? parseInt(values.embedding_size) : undefined,
+            chunk_overlap: values.chunk_overlap ? parseInt(values.chunk_overlap) : undefined,
           });
 
           if (!isSuccess || !response) {
@@ -177,7 +199,7 @@ export function ConnectorForm<T extends Yup.AnyObject>({
 
           if (credentialIdToLinkTo !== undefined) {
             const ccPairName = ccPairNameBuilder
-              ? ccPairNameBuilder(values)
+              ? ccPairNameBuilder(values) || undefined
               : values.cc_pair_name;
             const linkCredentialResponse = await linkCredential(
               response.id,
@@ -219,6 +241,31 @@ export function ConnectorForm<T extends Yup.AnyObject>({
             )}
             {formBody && formBody}
             {formBodyBuilder && formBodyBuilder(values)}
+
+            {displayAdvancedSettings && 
+            <>
+              <Divider />
+              <HidableSection sectionTitle="Advanced Settings" defaultHidden>
+                  <>
+                    <TextFormField
+                      name="embedding_size"
+                      label="Embedding Size"
+                      autoCompleteDisabled={true}
+                      subtext="The number of tokens to use when chunking the document. If not specified, the default value 512 will be used."
+                    />
+                    <TextFormField
+                      name="chunk_overlap"
+                      label="Chunk Overlap"
+                      autoCompleteDisabled={true}
+                      subtext="The number of tokens to overlap when chunking the document. If not specified, the default value 0 will be used."
+                    />
+                  </>
+              </HidableSection>
+              <Divider />
+            </>
+            }
+            
+
             <div className="flex">
               <Button
                 type="submit"

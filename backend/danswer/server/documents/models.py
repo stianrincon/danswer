@@ -69,6 +69,8 @@ class ConnectorBase(BaseModel):
     connector_specific_config: dict[str, Any]
     refresh_freq: int | None  # In seconds, None for one time index with no refresh
     disabled: bool
+    embedding_size: int | None
+    chunk_overlap: int | None
 
 
 class ConnectorSnapshot(ConnectorBase):
@@ -92,6 +94,8 @@ class ConnectorSnapshot(ConnectorBase):
             time_created=connector.time_created,
             time_updated=connector.time_updated,
             disabled=connector.disabled,
+            embedding_size=connector.embedding_size,
+            chunk_overlap=connector.chunk_overlap,
         )
 
 
@@ -172,6 +176,8 @@ class ConnectorIndexingStatus(BaseModel):
     latest_index_attempt: IndexAttemptSnapshot | None
     deletion_attempt: DeletionAttemptSnapshot | None
     is_deletable: bool
+    embedding_size: int
+    chunk_overlap: int
 
 
 class ConnectorCredentialPairIdentifier(BaseModel):

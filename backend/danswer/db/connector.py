@@ -8,6 +8,8 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.orm import Session
 
 from danswer.configs.constants import DocumentSource
+from danswer.configs.app_configs import CHUNK_OVERLAP
+from danswer.configs.model_configs import DOC_EMBEDDING_CONTEXT_SIZE
 from danswer.connectors.models import InputType
 from danswer.db.models import Connector
 from danswer.db.models import IndexAttempt
@@ -85,6 +87,8 @@ def create_connector(
         connector_specific_config=connector_data.connector_specific_config,
         refresh_freq=connector_data.refresh_freq,
         disabled=connector_data.disabled,
+        embedding_size=connector_data.embedding_size or DOC_EMBEDDING_CONTEXT_SIZE,
+        chunk_overlap= connector_data.chunk_overlap or CHUNK_OVERLAP
     )
     db_session.add(connector)
     db_session.commit()

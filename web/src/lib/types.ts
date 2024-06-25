@@ -79,6 +79,8 @@ export interface ConnectorBase<T> {
   connector_specific_config: T;
   refresh_freq: number | null;
   disabled: boolean;
+  embedding_size?: number;
+  chunk_overlap?: number;
 }
 
 export interface Connector<T> extends ConnectorBase<T> {
@@ -254,6 +256,8 @@ export interface ConnectorIndexingStatus<
   latest_index_attempt: IndexAttemptSnapshot | null;
   deletion_attempt: DeletionAttemptSnapshot | null;
   is_deletable: boolean;
+  embedding_size: number;
+  chunk_overlap: number;
 }
 
 export interface CCPairBasicInfo {
@@ -495,4 +499,8 @@ export interface UserGroup {
   personas: Persona[];
   is_up_to_date: boolean;
   is_up_for_deletion: boolean;
+}
+
+export interface AdvancedSettings {
+  enabled: boolean;
 }

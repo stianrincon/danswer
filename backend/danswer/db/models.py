@@ -402,6 +402,9 @@ class Connector(Base):
     index_attempts: Mapped[list["IndexAttempt"]] = relationship(
         "IndexAttempt", back_populates="connector"
     )
+    embedding_size: Mapped[int] = mapped_column(Integer, nullable=False, server_default="512")
+    chunk_overlap: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    
 
 
 class Credential(Base):
