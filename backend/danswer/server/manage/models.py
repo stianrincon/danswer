@@ -14,6 +14,8 @@ from danswer.db.models import SlackBotConfig as SlackBotConfigModel
 from danswer.db.models import SlackBotResponseType
 from danswer.indexing.models import EmbeddingModelDetail
 from danswer.server.features.persona.models import PersonaSnapshot
+from danswer.server.models import FullUserSnapshot
+from danswer.server.models import InvitedUserSnapshot
 
 if TYPE_CHECKING:
     from danswer.db.models import User as UserModel
@@ -102,6 +104,7 @@ class SlackBotConfigCreationRequest(BaseModel):
     respond_to_bots: bool = False
     # If no team members, assume respond in the channel to everyone
     respond_team_member_list: list[str] = []
+    respond_slack_group_list: list[str] = []
     answer_filters: list[AllowedAnswerFilters] = []
     # list of user emails
     follow_up_tags: list[str] | None = None
@@ -152,3 +155,10 @@ class SlackBotConfig(BaseModel):
 class FullModelVersionResponse(BaseModel):
     current_model: EmbeddingModelDetail
     secondary_model: EmbeddingModelDetail | None
+
+
+class AllUsersResponse(BaseModel):
+    accepted: list[FullUserSnapshot]
+    invited: list[InvitedUserSnapshot]
+    accepted_pages: int
+    invited_pages: int

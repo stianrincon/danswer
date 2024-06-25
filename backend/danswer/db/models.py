@@ -383,6 +383,7 @@ class Connector(Base):
         postgresql.JSONB()
     )
     refresh_freq: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    prune_freq: Mapped[int | None] = mapped_column(Integer, nullable=True)
     time_created: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -662,6 +663,8 @@ class ChatSession(Base):
     folder_id: Mapped[int | None] = mapped_column(
         ForeignKey("chat_folder.id"), nullable=True
     )
+
+    current_alternate_model: Mapped[str | None] = mapped_column(String, default=None)
 
     # the latest "overrides" specified by the user. These take precedence over
     # the attached persona. However, overrides specified directly in the
@@ -1061,6 +1064,7 @@ class ChannelConfig(TypedDict):
     respond_tag_only: NotRequired[bool]  # defaults to False
     respond_to_bots: NotRequired[bool]  # defaults to False
     respond_team_member_list: NotRequired[list[str]]
+    respond_slack_group_list: NotRequired[list[str]]
     answer_filters: NotRequired[list[AllowedAnswerFilters]]
     # If None then no follow up
     # If empty list, follow up with no tags
