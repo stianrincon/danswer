@@ -45,7 +45,6 @@ import { useDocumentSelection } from "./useDocumentSelection";
 import { useFilters, useLlmOverride } from "@/lib/hooks";
 import { computeAvailableFilters } from "@/lib/filters";
 import { FeedbackType } from "./types";
-import ResizableSection from "@/components/resizable/ResizableSection";
 import { DocumentSidebar } from "./documentSidebar/DocumentSidebar";
 import { DanswerInitializingLoader } from "@/components/DanswerInitializingLoader";
 import { FeedbackModal } from "./modal/FeedbackModal";
@@ -72,6 +71,12 @@ import { useChatContext } from "@/components/context/ChatContext";
 import { UserDropdown } from "@/components/UserDropdown";
 import { v4 as uuidv4 } from "uuid";
 import { orderAssistantsForUser } from "@/lib/assistants/orderAssistants";
+import { ChatPopup } from "./ChatPopup";
+import { ChatBanner } from "./ChatBanner";
+import { TbLayoutSidebarRightExpand } from "react-icons/tb";
+import { SIDEBAR_WIDTH_CONST } from "@/lib/constants";
+
+import ResizableSection from "@/components/resizable/ResizableSection";
 
 const MAX_INPUT_HEIGHT = 200;
 const TEMP_USER_MESSAGE_ID = -1;
@@ -253,6 +258,19 @@ export function ChatPage({
 
     initialSessionFetch();
   }, [existingChatSessionId]);
+
+  const [usedSidebarWidth, setUsedSidebarWidth] = useState<number>(
+    documentSidebarInitialWidth || parseInt(SIDEBAR_WIDTH_CONST)
+  );
+
+  const updateSidebarWidth = (newWidth: number) => {
+    setUsedSidebarWidth(newWidth);
+    if (sidebarElementRef.current && innerSidebarElementRef.current) {
+      sidebarElementRef.current.style.transition = "";
+      sidebarElementRef.current.style.width = `${newWidth}px`;
+      innerSidebarElementRef.current.style.width = `${newWidth}px`;
+    }
+  };
 
   const [chatSessionId, setChatSessionId] = useState<number | null>(
     existingChatSessionId
@@ -470,6 +488,7 @@ export function ChatPage({
       }
     }
   };
+
   useEffect(() => {
     adjustDocumentSidebarWidth(); // Adjust the width on initial render
     window.addEventListener("resize", adjustDocumentSidebarWidth); // Add resize event listener
@@ -863,14 +882,32 @@ export function ChatPage({
     router.push("/search");
   }
 
+  const [showDocSidebar, setShowDocSidebar] = useState(true); // State to track if sidebar is open
+
+  const toggleSidebar = () => {
+    if (sidebarElementRef.current) {
+      sidebarElementRef.current.style.transition = "width 0.3s ease-in-out";
+
+      sidebarElementRef.current.style.width = showDocSidebar
+        ? "0px"
+        : `${usedSidebarWidth}px`;
+    }
+
+    setShowDocSidebar((showDocSidebar) => !showDocSidebar); // Toggle the state which will in turn toggle the class
+  };
+
   const retrievalDisabled = !personaIncludesRetrieval(livePersona);
+  const sidebarElementRef = useRef<HTMLDivElement>(null);
+  const innerSidebarElementRef = useRef<HTMLDivElement>(null);
+
   return (
     <>
-      {/* <div className="absolute top-0 z-40 w-full">
-        <Header user={user} />
-      </div> */}
       <HealthCheckBanner />
       <InstantSSRAutoRefresh />
+
+      {/* ChatPopup is a custom popup that displays a admin-specified message on initial user visit. 
+      Only used in the EE version of the app. */}
+      <ChatPopup />
 
       <div className="flex relative bg-background text-default overflow-x-hidden">
         <ChatSidebar
@@ -880,7 +917,7 @@ export function ChatPage({
           openedFolders={openedFolders}
         />
 
-        <div className="flex w-full overflow-x-hidden" ref={masterFlexboxRef}>
+        <div ref={masterFlexboxRef} className="flex w-full overflow-x-hidden">
           {popup}
           {currentFeedback && (
             <FeedbackModal
@@ -933,7 +970,10 @@ export function ChatPage({
                   <div
                     className={`w-full sm:relative h-screen ${
                       retrievalDisabled ? "pb-[111px]" : "pb-[140px]"
-                    }`}
+                    }
+                      flex-auto transition-margin duration-300 
+                      overflow-x-auto
+                      `}
                     {...getRootProps()}
                   >
                     {/* <input {...getInputProps()} /> */}
@@ -941,6 +981,10 @@ export function ChatPage({
                       className={`w-full h-full flex flex-col overflow-y-auto overflow-x-hidden relative`}
                       ref={scrollableDivRef}
                     >
+                      {/* ChatBanner is a custom banner that displays a admin-specified message at 
+                      the top of the chat page. Only used in the EE version of the app. */}
+                      <ChatBanner />
+
                       {livePersona && (
                         <div className="sticky top-0 left-80 z-10 w-full bg-background flex">
                           <div className="mt-2 flex w-full">
@@ -953,7 +997,7 @@ export function ChatPage({
                               />
                             </div>
 
-                            <div className="ml-auto mr-8 flex">
+                            <div className="ml-auto mr-6 flex">
                               {chatSessionId !== null && (
                                 <div
                                   onClick={() => setSharingModalVisible(true)}
@@ -969,8 +1013,16 @@ export function ChatPage({
                                 </div>
                               )}
 
-                              <div className="ml-4 my-auto">
+                              <div className="ml-4 flex my-auto">
                                 <UserDropdown user={user} />
+                                {!retrievalDisabled && !showDocSidebar && (
+                                  <button
+                                    className="ml-4 mt-auto"
+                                    onClick={() => toggleSidebar()}
+                                  >
+                                    <TbLayoutSidebarRightExpand size={24} />
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1037,7 +1089,6 @@ export function ChatPage({
                                       newCompleteMessageMap
                                     );
                                     setSelectedMessageForDocDisplay(messageId);
-
                                     // set message as latest so we can edit this message
                                     // and so it sticks around on page reload
                                     setMessageAsLatest(messageId);
@@ -1066,9 +1117,7 @@ export function ChatPage({
                                 citedDocuments={getCitedDocumentsFromMessage(
                                   message
                                 )}
-                                toolCall={
-                                  message.toolCalls && message.toolCalls[0]
-                                }
+                                toolCall={message?.toolCalls?.[0]}
                                 isComplete={
                                   i !== messageHistory.length - 1 ||
                                   !isStreaming
@@ -1263,21 +1312,31 @@ export function ChatPage({
                   </div>
 
                   {!retrievalDisabled ? (
-                    <ResizableSection
-                      intialWidth={documentSidebarInitialWidth as number}
-                      minWidth={400}
-                      maxWidth={maxDocumentSidebarWidth || undefined}
+                    <div
+                      ref={sidebarElementRef}
+                      className={`relative flex-none  overflow-y-hidden sidebar bg-background-weak h-screen`}
+                      style={{ width: showDocSidebar ? usedSidebarWidth : 0 }}
                     >
-                      <DocumentSidebar
-                        selectedMessage={aiMessage}
-                        selectedDocuments={selectedDocuments}
-                        toggleDocumentSelection={toggleDocumentSelection}
-                        clearSelectedDocuments={clearSelectedDocuments}
-                        selectedDocumentTokens={selectedDocumentTokens}
-                        maxTokens={maxTokens}
-                        isLoading={isFetchingChatMessages}
-                      />
-                    </ResizableSection>
+                      <ResizableSection
+                        updateSidebarWidth={updateSidebarWidth}
+                        intialWidth={usedSidebarWidth}
+                        minWidth={300}
+                        maxWidth={maxDocumentSidebarWidth || undefined}
+                      >
+                        <DocumentSidebar
+                          initialWidth={showDocSidebar ? usedSidebarWidth : 0}
+                          ref={innerSidebarElementRef}
+                          closeSidebar={() => toggleSidebar()}
+                          selectedMessage={aiMessage}
+                          selectedDocuments={selectedDocuments}
+                          toggleDocumentSelection={toggleDocumentSelection}
+                          clearSelectedDocuments={clearSelectedDocuments}
+                          selectedDocumentTokens={selectedDocumentTokens}
+                          maxTokens={maxTokens}
+                          isLoading={isFetchingChatMessages}
+                        />
+                      </ResizableSection>
+                    </div>
                   ) : // Another option is to use a div with the width set to the initial width, so that the
                   // chat section appears in the same place as before
                   // <div style={documentSidebarInitialWidth ? {width: documentSidebarInitialWidth} : {}}></div>

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -10,10 +12,12 @@ import {
 } from "@/lib/types";
 import { deleteConnectorIfExistsAndIsUnlinked } from "@/lib/connector";
 import { FormBodyBuilder, RequireAtLeastOne } from "./types";
-import { TextFormField } from "./Field";
+import { BooleanFormField, TextFormField } from "./Field";
 import { createCredential, linkCredential } from "@/lib/credential";
 import { useSWRConfig } from "swr";
-import { Button, Divider } from "@tremor/react";
+import { Button, Divider, Divider } from "@tremor/react";
+import IsPublicField from "./IsPublicField";
+import { usePaidEnterpriseFeaturesEnabled } from "@/components/settings/usePaidEnterpriseFeaturesEnabled";
 import { HidableSection } from "@/app/admin/assistants/HidableSection";
 import { useConnectorAdvancedSettings } from "./hooks";
 
@@ -100,39 +104,59 @@ export function ConnectorForm<T extends Yup.AnyObject>({
 }: ConnectorFormProps<T>): JSX.Element {
   const { mutate } = useSWRConfig();
   const { popup, setPopup } = usePopup();
+
+  // only show this option for EE, since groups are not supported in CE
+  const showNonPublicOption = usePaidEnterpriseFeaturesEnabled();
   const displayAdvancedSettings = useConnectorAdvancedSettings();
 
   const shouldHaveNameInput = credentialId !== undefined && !ccPairNameBuilder;
-
   const commonFields = {
     embedding_size: "",
     chunk_overlap: ""
   };
-
+  
+  const ccPairNameInitialValue = shouldHaveNameInput
+    ? { cc_pair_name: "" }
+    : {};
+  
+  const publicOptionInitialValue = showNonPublicOption
+    ? { is_public: false }
+    : {};
+  
   const formInitialValues = {
     ...initialValues,
     ...commonFields,
-    ...(shouldHaveNameInput ? { cc_pair_name: "" } : {})
+    ...ccPairNameInitialValue,
+    ...publicOptionInitialValue
   };
-
+  
   // Define common schema
   const commonSchema = {
     embedding_size: Yup.string(),
     chunk_overlap: Yup.string()
   };
-
+  
   // Create validationSchema
-  const formValidationSchema = validationSchema
-    .shape(commonSchema)
-    .concat(shouldHaveNameInput ? CCPairNameHaver : Yup.object());
-
+  let finalValidationSchema = validationSchema.shape(commonSchema);
+  
+  if (shouldHaveNameInput) {
+    finalValidationSchema = finalValidationSchema.concat(CCPairNameHaver);
+  }
+  
+  if (showNonPublicOption) {
+    finalValidationSchema = finalValidationSchema.concat(
+      Yup.object().shape({
+        is_public: Yup.boolean(),
+      })
+    );
+  }
 
   return (
     <>
       {popup}
       <Formik
         initialValues={formInitialValues}
-        validationSchema={formValidationSchema}
+        validationSchema={finalValidationSchema}
         onSubmit={async (values, formikHelpers) => {
           formikHelpers.setSubmitting(true);
           const connectorName = nameBuilder(values);
@@ -207,7 +231,8 @@ export function ConnectorForm<T extends Yup.AnyObject>({
             const linkCredentialResponse = await linkCredential(
               response.id,
               credentialIdToLinkTo,
-              ccPairName
+              ccPairName as string,
+              values.is_public
             );
             if (!linkCredentialResponse.ok) {
               const linkCredentialErrorMsg =
@@ -244,6 +269,13 @@ export function ConnectorForm<T extends Yup.AnyObject>({
             )}
             {formBody && formBody}
             {formBodyBuilder && formBodyBuilder(values)}
+            {showNonPublicOption && (
+              <>
+                <Divider />
+                <IsPublicField />
+                <Divider />
+              </>
+            )}
 
             {displayAdvancedSettings && 
             <>

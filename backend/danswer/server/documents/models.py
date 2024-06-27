@@ -189,6 +189,7 @@ class ConnectorCredentialPairIdentifier(BaseModel):
 
 class ConnectorCredentialPairMetadata(BaseModel):
     name: str | None
+    is_public: bool
 
 
 class ConnectorCredentialPairDescriptor(BaseModel):
