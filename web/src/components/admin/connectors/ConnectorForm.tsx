@@ -15,7 +15,7 @@ import { FormBodyBuilder, RequireAtLeastOne } from "./types";
 import { BooleanFormField, TextFormField } from "./Field";
 import { createCredential, linkCredential } from "@/lib/credential";
 import { useSWRConfig } from "swr";
-import { Button, Divider, Divider } from "@tremor/react";
+import { Button, Divider } from "@tremor/react";
 import IsPublicField from "./IsPublicField";
 import { usePaidEnterpriseFeaturesEnabled } from "@/components/settings/usePaidEnterpriseFeaturesEnabled";
 import { HidableSection } from "@/app/admin/assistants/HidableSection";
@@ -109,40 +109,26 @@ export function ConnectorForm<T extends Yup.AnyObject>({
   const showNonPublicOption = usePaidEnterpriseFeaturesEnabled();
   const displayAdvancedSettings = useConnectorAdvancedSettings();
 
-  const shouldHaveNameInput = credentialId !== undefined && !ccPairNameBuilder;
+  // Define common fields
   const commonFields = {
     embedding_size: "",
     chunk_overlap: ""
   };
-  
+
+  const shouldHaveNameInput = credentialId !== undefined && !ccPairNameBuilder;
+
   const ccPairNameInitialValue = shouldHaveNameInput
     ? { cc_pair_name: "" }
     : {};
-  
   const publicOptionInitialValue = showNonPublicOption
     ? { is_public: false }
     : {};
-  
-  const formInitialValues = {
-    ...initialValues,
-    ...commonFields,
-    ...ccPairNameInitialValue,
-    ...publicOptionInitialValue
-  };
-  
-  // Define common schema
-  const commonSchema = {
-    embedding_size: Yup.string(),
-    chunk_overlap: Yup.string()
-  };
-  
-  // Create validationSchema
-  let finalValidationSchema = validationSchema.shape(commonSchema);
-  
+
+  let finalValidationSchema =
+    validationSchema as Yup.ObjectSchema<Yup.AnyObject>;
   if (shouldHaveNameInput) {
     finalValidationSchema = finalValidationSchema.concat(CCPairNameHaver);
   }
-  
   if (showNonPublicOption) {
     finalValidationSchema = finalValidationSchema.concat(
       Yup.object().shape({
@@ -150,6 +136,18 @@ export function ConnectorForm<T extends Yup.AnyObject>({
       })
     );
   }
+
+  finalValidationSchema = finalValidationSchema.concat(Yup.object().shape({
+    embedding_size: Yup.string(),
+    chunk_overlap: Yup.string()
+  }));
+
+  const formInitialValues = {
+    ...publicOptionInitialValue,
+    ...ccPairNameInitialValue,
+    ...initialValues,
+    ...commonFields,
+  };
 
   return (
     <>
@@ -402,3 +400,4 @@ export function UpdateConnectorForm<T extends Yup.AnyObject>({
     </>
   );
 }
+
