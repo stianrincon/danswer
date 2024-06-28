@@ -175,11 +175,12 @@ export function ConnectorsTable<ConnectorConfigType, ConnectorCredentialType>({
             {connectorIncludesCredential && (
               <TableHeaderCell>Credential</TableHeaderCell>
             )}
-            {displayAdvancedSettings &&
-            <>
-              <TableHeaderCell>Embedding Size</TableHeaderCell>
-              <TableHeaderCell>Chunk Overlap</TableHeaderCell>
-            </>}
+            {displayAdvancedSettings && (
+              <>
+                <TableHeaderCell>Embedding Size</TableHeaderCell>
+                <TableHeaderCell>Chunk Overlap</TableHeaderCell>
+              </>
+            )}
             <TableHeaderCell>Remove</TableHeaderCell>
           </TableRow>
         </TableHead>
@@ -239,11 +240,16 @@ export function ConnectorsTable<ConnectorConfigType, ConnectorCredentialType>({
                 {connectorIncludesCredential && (
                   <TableCell>{credentialDisplay}</TableCell>
                 )}
-                {displayAdvancedSettings &&
-                <>
-                  <TableCell>{connectorIndexingStatus.embedding_size}</TableCell>
-                  <TableCell>{connectorIndexingStatus.chunk_overlap}</TableCell>
-                </>}
+                {displayAdvancedSettings && (
+                  <>
+                    <TableCell>
+                      {connectorIndexingStatus.embedding_size}
+                    </TableCell>
+                    <TableCell>
+                      {connectorIndexingStatus.chunk_overlap}
+                    </TableCell>
+                  </>
+                )}
                 <TableCell>
                   <DeleteColumn
                     connectorIndexingStatus={connectorIndexingStatus}

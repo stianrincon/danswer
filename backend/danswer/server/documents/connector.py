@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session
 from danswer.auth.users import current_admin_user
 from danswer.auth.users import current_user
 from danswer.background.celery.celery_utils import get_deletion_status
-from danswer.configs.app_configs import ENABLED_CONNECTOR_TYPES
 from danswer.configs.app_configs import ENABLED_CONNECTOR_EMBEDDING_SETTINGS
+from danswer.configs.app_configs import ENABLED_CONNECTOR_TYPES
 from danswer.configs.constants import DocumentSource
 from danswer.configs.constants import FileOrigin
 from danswer.connectors.gmail.connector_auth import delete_gmail_service_account_key
@@ -453,8 +453,8 @@ def get_connector_indexing_status(
                     allow_scheduled=True,
                 )
                 is None,
-                embedding_size= connector.embedding_size,
-                chunk_overlap=connector.chunk_overlap
+                embedding_size=connector.embedding_size,
+                chunk_overlap=connector.chunk_overlap,
             )
         )
 

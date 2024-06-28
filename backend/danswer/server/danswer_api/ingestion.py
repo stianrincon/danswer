@@ -92,7 +92,9 @@ def upsert_ingestion_doc(
 
     db_embedding_model = get_current_db_embedding_model(db_session)
 
-    embedding_chunk_config = get_embedding_chunks_by_document_id_with_session(document.id, db_session)
+    embedding_chunk_config = get_embedding_chunks_by_document_id_with_session(
+        document.id, db_session
+    )
 
     index_embedding_model = DefaultIndexingEmbedder(
         model_name=db_embedding_model.model_name,
@@ -131,8 +133,10 @@ def upsert_ingestion_doc(
                 "Secondary index exists but no embedding model configured"
             )
 
-        embedding_chunk_config = get_embedding_chunks_by_document_id_with_session(document.id, db_session)
-        
+        embedding_chunk_config = get_embedding_chunks_by_document_id_with_session(
+            document.id, db_session
+        )
+
         new_index_embedding_model = DefaultIndexingEmbedder(
             model_name=sec_db_embedding_model.model_name,
             normalize=sec_db_embedding_model.normalize,

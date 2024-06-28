@@ -405,7 +405,6 @@ class Connector(Base):
     )
     embedding_size: Mapped[int] = mapped_column(Integer, nullable=False)
     chunk_overlap: Mapped[int] = mapped_column(Integer, nullable=False)
-    
 
 
 class Credential(Base):

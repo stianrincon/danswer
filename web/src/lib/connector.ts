@@ -1,5 +1,10 @@
 import { PopupSpec } from "@/components/admin/connectors/Popup";
-import { AdvancedSettings, Connector, ConnectorBase, ValidSources } from "./types";
+import {
+  AdvancedSettings,
+  Connector,
+  ConnectorBase,
+  ValidSources,
+} from "./types";
 
 async function handleResponse(
   response: Response

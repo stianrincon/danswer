@@ -186,10 +186,15 @@ class DefaultChunker(Chunker):
         self.db_session = db_session
 
     def chunk(self, document: Document) -> list[DocAwareChunk]:
-        embeddings_chunk_config = get_embedding_chunks_by_document_id_with_session(document.id, self.db_session)
+        embeddings_chunk_config = get_embedding_chunks_by_document_id_with_session(
+            document.id, self.db_session
+        )
         # Specifically for reproducing an issue with gmail
         if document.source == DocumentSource.GMAIL:
             logger.debug(f"Chunking {document.semantic_identifier}")
-        
-        return chunk_document(document, chunk_tok_size = embeddings_chunk_config.embedding_size, 
-                              subsection_overlap = embeddings_chunk_config.chunk_overlap)
+
+        return chunk_document(
+            document,
+            chunk_tok_size=embeddings_chunk_config.embedding_size,
+            subsection_overlap=embeddings_chunk_config.chunk_overlap,
+        )

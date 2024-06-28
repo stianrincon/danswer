@@ -38,7 +38,7 @@ def _compute_limit(
     max_window_percentage: float | None,
     max_tokens: int | None,
     tool_token_count: int,
-    doc_embeddind_context_size: int
+    doc_embeddind_context_size: int,
 ) -> int:
     llm_max_document_tokens = compute_max_document_tokens(
         prompt_config=prompt_config,
@@ -96,7 +96,7 @@ def _apply_pruning(
     is_manually_selected_docs: bool,
     use_sections: bool,
     using_tool_message: bool,
-    doc_embeddind_context_size: int
+    doc_embeddind_context_size: int,
 ) -> list[LlmDoc]:
     llm_tokenizer = get_default_llm_tokenizer()
     docs = deepcopy(docs)  # don't modify in place
@@ -214,7 +214,9 @@ def prune_documents(
         assert len(docs) == len(doc_relevance_list)
 
     document_ids = [doc.document_id for doc in docs]
-    doc_embedding_chunk_config = get_highest_embedding_chunk_size_by_document_ids(document_ids)
+    doc_embedding_chunk_config = get_highest_embedding_chunk_size_by_document_ids(
+        document_ids
+    )
 
     doc_token_limit = _compute_limit(
         prompt_config=prompt_config,
@@ -224,7 +226,7 @@ def prune_documents(
         max_window_percentage=document_pruning_config.max_window_percentage,
         max_tokens=document_pruning_config.max_tokens,
         tool_token_count=document_pruning_config.tool_num_tokens,
-        doc_embeddind_context_size=doc_embedding_chunk_config.embedding_size
+        doc_embeddind_context_size=doc_embedding_chunk_config.embedding_size,
     )
     return _apply_pruning(
         docs=docs,
@@ -233,5 +235,5 @@ def prune_documents(
         is_manually_selected_docs=document_pruning_config.is_manually_selected_docs,
         use_sections=document_pruning_config.use_sections,
         using_tool_message=document_pruning_config.using_tool_message,
-        doc_embeddind_context_size=doc_embedding_chunk_config.embedding_size
+        doc_embeddind_context_size=doc_embedding_chunk_config.embedding_size,
     )

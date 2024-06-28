@@ -110,7 +110,7 @@ export function ConnectorForm<T extends Yup.AnyObject>({
   // Define common fields
   const commonFields = {
     embedding_size: "",
-    chunk_overlap: ""
+    chunk_overlap: "",
   };
 
   const shouldHaveNameInput = credentialId !== undefined && !ccPairNameBuilder;
@@ -135,10 +135,12 @@ export function ConnectorForm<T extends Yup.AnyObject>({
     );
   }
 
-  finalValidationSchema = finalValidationSchema.concat(Yup.object().shape({
-    embedding_size: Yup.string(),
-    chunk_overlap: Yup.string()
-  }));
+  finalValidationSchema = finalValidationSchema.concat(
+    Yup.object().shape({
+      embedding_size: Yup.string(),
+      chunk_overlap: Yup.string(),
+    })
+  );
 
   const formInitialValues = {
     ...publicOptionInitialValue,
@@ -158,7 +160,9 @@ export function ConnectorForm<T extends Yup.AnyObject>({
           const connectorName = nameBuilder(values);
           const connectorConfig = Object.fromEntries(
             Object.keys(initialValues)
-              .filter((key) => key !== "embedding_size" && key !== "chunk_overlap")
+              .filter(
+                (key) => key !== "embedding_size" && key !== "chunk_overlap"
+              )
               .map((key) => [key, values[key]])
           ) as T;
 
@@ -187,8 +191,12 @@ export function ConnectorForm<T extends Yup.AnyObject>({
             refresh_freq: refreshFreq || 0,
             prune_freq: pruneFreq ?? null,
             disabled: false,
-            embedding_size: values.embedding_size ? parseInt(values.embedding_size) : undefined,
-            chunk_overlap: values.chunk_overlap ? parseInt(values.chunk_overlap) : undefined,
+            embedding_size: values.embedding_size
+              ? parseInt(values.embedding_size)
+              : undefined,
+            chunk_overlap: values.chunk_overlap
+              ? parseInt(values.chunk_overlap)
+              : undefined,
           });
 
           if (!isSuccess || !response) {
@@ -272,10 +280,10 @@ export function ConnectorForm<T extends Yup.AnyObject>({
               </>
             )}
 
-            {displayAdvancedSettings && 
-            <>
-              <Divider />
-              <HidableSection sectionTitle="Advanced Settings" defaultHidden>
+            {displayAdvancedSettings && (
+              <>
+                <Divider />
+                <HidableSection sectionTitle="Advanced Settings" defaultHidden>
                   <>
                     <TextFormField
                       name="embedding_size"
@@ -290,11 +298,10 @@ export function ConnectorForm<T extends Yup.AnyObject>({
                       subtext="The number of tokens to overlap when chunking the document. If not specified, the default value 0 will be used."
                     />
                   </>
-              </HidableSection>
-              <Divider />
-            </>
-            }
-            
+                </HidableSection>
+                <Divider />
+              </>
+            )}
 
             <div className="flex">
               <Button
@@ -397,4 +404,3 @@ export function UpdateConnectorForm<T extends Yup.AnyObject>({
     </>
   );
 }
-

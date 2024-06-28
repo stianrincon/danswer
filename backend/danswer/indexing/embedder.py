@@ -50,7 +50,7 @@ class DefaultIndexingEmbedder(IndexingEmbedder):
         normalize: bool,
         query_prefix: str | None,
         passage_prefix: str | None,
-        doc_embeddind_context_size: int
+        doc_embeddind_context_size: int,
     ):
         super().__init__(model_name, normalize, query_prefix, passage_prefix)
         self.max_seq_length = doc_embeddind_context_size
@@ -181,5 +181,5 @@ def get_embedding_model_from_db_embedding_model(
         normalize=db_embedding_model.normalize,
         query_prefix=db_embedding_model.query_prefix,
         passage_prefix=db_embedding_model.passage_prefix,
-        doc_embeddind_context_size=DOC_EMBEDDING_CONTEXT_SIZE
+        doc_embeddind_context_size=DOC_EMBEDDING_CONTEXT_SIZE,
     )
